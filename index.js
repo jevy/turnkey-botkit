@@ -1,5 +1,10 @@
 /* Uses the slack button feature to offer a real time bot to multiple teams */
 var Botkit = require('botkit');
+var Asteroid = require("asteroid");
+
+var backend = new Asteroid("localhost:3000");
+backend.subscribe("conversationsPublication");
+var conversations = backend.getCollection("conversations");
 
 if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
   console.log('Error: Specify clientId clientSecret and port in environment');
@@ -95,6 +100,14 @@ controller.hears('^stop','direct_message',function(bot,message) {
 });
 
 controller.on('direct_message,mention,direct_mention',function(bot,message) {
+
+  conversations.insert({
+    message: message.text,
+    user: message.user
+  });
+
+  // var conversationsTaskRQ = conversations.reactiveQuery({message: 'From slack botkit'});
+
   bot.api.reactions.add({
     timestamp: message.ts,
     channel: message.channel,
